@@ -1,0 +1,49 @@
+version: '3'
+services:
+  # PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sikawan-filament-app
+    container_name: sikawan-filament-app
+    restart: unless-stopped
+    environment:
+      APP_NAME: Laravel
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_URL: ${APP_URL}
+      DB_CONNECTION: sqlite
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+    volumes:
+      - app-storage:/var/www/html/storage
+    networks:
+      - sikawan-network
+
+  # Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: sikawan-filament-webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - app-storage:/var/www/html/storage
+    depends_on:
+      - app
+    networks:
+      - sikawan-network
+
+# Networks
+networks:
+  sikawan-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  app-storage:
+    driver: local
